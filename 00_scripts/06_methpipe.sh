@@ -38,14 +38,18 @@ do
     LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 \
         -o "$DATA_FOLDER"/"$i".mr.sorted_start "$DATA_FOLDER"/"$i".mr
 
-    #rm "$DATAINPUT"/"$base".mr
+    # Compress .mr file
+    gzip "$DATA_FOLDER"/"$i".mr
+
     # Remove putative PCR duplicates
     duplicate-remover -S "$DATA_FOLDER"/"$i".dremove_stat.txt \
         -o "$DATA_FOLDER"/"$i".mr.dremove "$DATA_FOLDER"/"$i".mr.sorted_start
+
     rm "$DATA_FOLDER"/"$i".mr.sorted_start
 
     LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 \
         -o "$DATA_FOLDER"/"$i".mr.dremove.sort "$DATA_FOLDER"/"$i".mr.dremove
+
     rm "$DATA_FOLDER"/"$i".mr.dremove
 
     # Compute methylation level
@@ -59,6 +63,7 @@ do
 
     # Compute conversion rate
     bsrate -c $GENOME -o "$DATA_FOLDER"/"$i".bsrate "$DATA_FOLDER"/"$i".mr.dremove.sort
+
     rm "$DATA_FOLDER"/"$i".mr.dremove.sort
 
 done
