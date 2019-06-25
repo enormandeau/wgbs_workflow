@@ -13,6 +13,8 @@
 cd $SLURM_SUBMIT_DIR
 
 # Load needed software
+# TODO test the 2 versions of vcftools, choose newest if same results
+#module load vcftools/0.1.16
 module load vcftools/0.1.12b
 
 # Get current time
