@@ -9,9 +9,6 @@
 #SBATCH --time=20-00:00
 #SBATCH --mem=20G
 
-#'usage
-#makedb -c <genome folder or file> -o <index file>
-#'
 # Move to directory where job was submitted
 cd $SLURM_SUBMIT_DIR
 
