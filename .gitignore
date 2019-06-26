@@ -1,5 +1,6 @@
 *.html
 *.ids
+*.log
 *.out
 *.sh
 *temp*
