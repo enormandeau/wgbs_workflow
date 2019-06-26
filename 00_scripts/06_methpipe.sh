@@ -24,11 +24,13 @@ NAME=$(basename $0)
 LOG_FOLDER="98_log_files"
 cp $SCRIPT $LOG_FOLDER/"$TIMESTAMP"_"$NAME"
 
+
+
+
 # Global variables
 GENOME="04_reference/genome_filtered.fna"
 DATA_FOLDER="05_results"
 DATAINPUT="03_trimmed"
-#base=__BASE__
 SAMPLE="01_info_file/sample_name_x"
 
 # Running the program
