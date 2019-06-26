@@ -1,16 +1,17 @@
 #!/bin/bash
 
-#SBATCH -J "align"
-#SBATCH -o 98_log_files/%j_align
-#SBATCH -c 5
-#SBATCH -p large
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=yourAddress
-#SBATCH --time=20-00:00
-#SBATCH --mem=32G
+# NOTE: moving to srun instead of sbatch
+###SBATCH -J "align"
+###SBATCH -o 98_log_files/%j_align
+###SBATCH -c 5
+###SBATCH -p large
+###SBATCH --mail-type=ALL
+###SBATCH --mail-user=yourAddress
+###SBATCH --time=20-00:00
+###SBATCH --mem=32G
 
 # Move to directory where job was submitted
-cd $SLURM_SUBMIT_DIR
+##cd $SLURM_SUBMIT_DIR
 
 # Get current time
 TIMESTAMP=$(date +%Y-%m-%d_%Hh%Mm%Ss)
@@ -28,11 +29,14 @@ module load samtools/1.8
 INDEX="04_reference/index_genome.dbindex"
 DATAFOLDER="03_trimmed"
 DATAOUTPUT="05_results"
-SAMPLE="01_info_file/sample_name.txt"
+SAMPLE="$1"
+
+echo "Using $SAMPLE"
 
 # Running the program
 cat "$SAMPLE" | while read i  
 do
+    echo "  Treating sample $i"
 
     zcat "$DATAFOLDER"/"$i"_R1.fastq.gz > "$DATAFOLDER"/"$i"_R1.fastq
     zcat "$DATAFOLDER"/"$i"_R2.fastq.gz > "$DATAFOLDER"/"$i"_R2.fastq
@@ -44,9 +48,5 @@ do
 
     rm "$DATAFOLDER"/"$i"_R*.fastq
 
+    gzip "$DATAOUTPUT"/"$i".mr
 done
-
-    #walt -i $INDEX -m 6 -t 5 -k 10 -N 5000000 \
-    #    -1 <(zcat "$DATAFOLDER"/"$i"_R1.fastq.gz) \
-    #    -2 <(zcat "$DATAFOLDER"/"$i"_R2.fastq.gz) \
-    #    -o "$DATAOUTPUT"/"$i".mr
