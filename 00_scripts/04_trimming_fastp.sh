@@ -31,9 +31,8 @@ QUAL=25
 DATA="02_data"
 OUTPUT="03_trimmed"
 
-# ls *.fastq.gz | awk -F"R" '{print $1}' | uniq > ../03_info_file/names_databrut
-
 # Running the program
+# TODO Check for better filtration options, some remaining adapters (0.1 to 0.47 %)
 for i in $(ls $DATA/*.fastq.gz | perl -pe 's/_R[12]\.fastq\.gz$/_/' | sort -u)
 do
 name=$(basename "$i")
