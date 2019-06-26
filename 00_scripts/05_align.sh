@@ -40,8 +40,8 @@ do
     echo "  Treating sample $i"
     echo "######################"
 
-    zcat "$DATAFOLDER"/"$i"_R1.fastq.gz | head -40000 > "$DATAFOLDER"/"$i"_R1.fastq
-    zcat "$DATAFOLDER"/"$i"_R2.fastq.gz | head -40000 > "$DATAFOLDER"/"$i"_R2.fastq
+    zcat "$DATAFOLDER"/"$i"_R1.fastq.gz > "$DATAFOLDER"/"$i"_R1.fastq
+    zcat "$DATAFOLDER"/"$i"_R2.fastq.gz > "$DATAFOLDER"/"$i"_R2.fastq
 
     # Aligning with WALT
     # TODO Check walt parameters
