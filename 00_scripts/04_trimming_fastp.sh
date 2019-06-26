@@ -30,7 +30,6 @@ LENGTH=100
 QUAL=25
 DATA="02_data"
 OUTPUT="03_trimmed"
-#base=__BASE__
 
 # ls *.fastq.gz | awk -F"R" '{print $1}' | uniq > ../03_info_file/names_databrut
 
@@ -49,6 +48,6 @@ name=$(basename "$i")
         --trim_tail2=1 \
         --json $OUTPUT/"$name" \
         --html $OUTPUT/"$name"  \
-        --report_title="$name" 
+        --report_title="$name"report.html
 
 done 2>&1 | tee 98_log_files/"$TIMESTAMP"_trim_fastp_wgbs.log
