@@ -1,17 +1,28 @@
 # WGBS Workflow
-A Whole Genome Bisulfige Sequencing workflow using the methpipe software:  
+A Whole Genome Bisulfige Sequencing workflow using the methpipe software:
 https://github.com/smithlabcode/methpipe/
 
 ## Attribution
-This work is forked form https://github.com/mleitwein/epigenetics_multifactor_workflow,  
-which in turn was forked from https://github.com/jleluyer/epigenetics_multifactor_workflow.
+This work is modified from
+https://github.com/mleitwein/epigenetics_multifactor_workflow, which in turn
+was forked from https://github.com/jleluyer/epigenetics_multifactor_workflow.
 
-The majority of code thus originated from the work of Jérémy Leluyer (https://github.com/jleluyer) and modifications made by Maëva Leitwein (https://github.com/mleitwein)
+The majority of code thus originated from the work of Jérémy Leluyer
+(https://github.com/jleluyer) and modifications made by Maëva Leitwein
+(https://github.com/mleitwein)
 
-The remaining changes were made mostly by Eric Normandeau (https://github.com/enormandeau) in Louis Bernatchez' lab (http://www2.bio.ulaval.ca/louisbernatchez/presentation.htm)
+The remaining changes were made mostly by Eric Normandeau
+(https://github.com/enormandeau) in Louis Bernatchez' lab
+(http://www2.bio.ulaval.ca/louisbernatchez/presentation.htm)
 
 ## Warning
-The software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
+The software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in the
+software.
 
 ## Dependencies
 [trim_galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
