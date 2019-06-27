@@ -1,16 +1,14 @@
 #!/bin/bash
 
-# NOTE: moving to srun instead of sbatch
-###SBATCH -J "align"
-###SBATCH -o 98_log_files/%j_align
-###SBATCH -c 5
-###SBATCH -p large
-###SBATCH --mail-type=ALL
-###SBATCH --mail-user=yourAddress
-###SBATCH --time=20-00:00
-###SBATCH --mem=32G
-# Move to directory where job was submitted
-##cd $SLURM_SUBMIT_DIR
+print_help () {
+    echo ""
+    echo "Usage:"
+    echo "    srun -c 1 --mem 32G -p large --time 21-00:00 -J waltAlign -o 98_log_files/waltAlign_%j.log ./00_scripts/05_align.sh <SAMPLE_FILE>"
+    echo ""
+    echo "Where:"
+    echo "    SAMPLE_FILE is a file containing samples (the part before _R1, _R2 or _trimmed_...)"
+    echo ""
+}
 
 # Load needed software
 module load samtools/1.8
@@ -27,62 +25,49 @@ cp $SCRIPT $LOG_FOLDER/"$TIMESTAMP"_"$NAME"
 
 # Global variables
 GENOME_INDEX="04_reference/index_genome.dbindex"
-DATAFOLDER="03_trimmed"
-DATAOUTPUT="05_results"
-SAMPLE="$1"
+TRIMMED_FOLDER="03_trimmed"
+RESULT_FOLDER="05_results"
+SAMPLE_FILE="$1"
 
-echo "Using $SAMPLE"
+if [ -z "$SAMPLE_FILE" ]
+then
+    print_help
+    exit
+fi 
 
-# Running the program
-cat "$SAMPLE" | while read i  
+# Running the pipeline
+cat "$SAMPLE_FILE" | while read SAMPLE
 do
     echo "######################"
-    echo "  Treating sample $i"
-    echo "######################"
+    echo "  Treating sample $SAMPLE"
 
-    zcat "$DATAFOLDER"/"$i"_R1.fastq.gz > "$DATAFOLDER"/"$i"_R1.fastq
-    zcat "$DATAFOLDER"/"$i"_R2.fastq.gz > "$DATAFOLDER"/"$i"_R2.fastq
+    zcat "$TRIMMED_FOLDER"/"$SAMPLE"_trimmed_fastp_R1.fastq.gz > "$TRIMMED_FOLDER"/"$SAMPLE"_R1.fastq
+    zcat "$TRIMMED_FOLDER"/"$SAMPLE"_trimmed_fastp_R2.fastq.gz > "$TRIMMED_FOLDER"/"$SAMPLE"_R2.fastq
 
     # Aligning with WALT
     # TODO Check walt parameters
     walt -i $GENOME_INDEX -m 6 -t 1 -k 10 -N 5000000 \
-        -1 "$DATAFOLDER"/"$i"_R1.fastq \
-        -2 "$DATAFOLDER"/"$i"_R2.fastq \
-        -o "$DATAOUTPUT"/"$i".mr
+        -1 "$TRIMMED_FOLDER"/"$SAMPLE"_R1.fastq \
+        -2 "$TRIMMED_FOLDER"/"$SAMPLE"_R2.fastq \
+        -o "$RESULT_FOLDER"/"$SAMPLE".mr
 
-    rm "$DATAFOLDER"/"$i"_R*.fastq
+    rm "$TRIMMED_FOLDER"/"$SAMPLE"_R*.fastq
 
     # Methpipe pipeline
     LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 \
-        -o "$DATAOUTPUT"/"$i".mr.sorted_start "$DATAOUTPUT"/"$i".mr
+        -o "$RESULT_FOLDER"/"$SAMPLE".mr.sorted_start "$RESULT_FOLDER"/"$SAMPLE".mr
 
-    # Compress .mr file
-    gzip "$DATAOUTPUT"/"$i".mr
+    # Delete .mr file
+    rm "$RESULT_FOLDER"/"$SAMPLE".mr
 
     # Remove putative PCR duplicates
-    duplicate-remover -S "$DATAOUTPUT"/"$i".dremove_stat.txt \
-        -o "$DATAOUTPUT"/"$i".mr.dremove "$DATAOUTPUT"/"$i".mr.sorted_start
+    duplicate-remover -S "$RESULT_FOLDER"/"$SAMPLE".dremove_stat.txt \
+        -o "$RESULT_FOLDER"/"$SAMPLE".mr.dremove "$RESULT_FOLDER"/"$SAMPLE".mr.sorted_start
 
-    rm "$DATAOUTPUT"/"$i".mr.sorted_start
+    rm "$RESULT_FOLDER"/"$SAMPLE".mr.sorted_start
 
     LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 \
-        -o "$DATAOUTPUT"/"$i".mr.dremove.sort "$DATAOUTPUT"/"$i".mr.dremove
+        -o "$RESULT_FOLDER"/"$SAMPLE".mr.dremove.sort "$RESULT_FOLDER"/"$SAMPLE".mr.dremove
 
-    rm "$DATAOUTPUT"/"$i".mr.dremove
-
-    # Compute methylation level
-    methcounts -cpg-only -c $GENOME_INDEX -o "$DATAOUTPUT"/"$i".meth "$DATAOUTPUT"/"$i".mr.dremove.sort
-
-    # Compute symmetric CpGs contexts
-    symmetric-cpgs -o "$DATAOUTPUT"/"$i"_CpG.meth "$DATAOUTPUT"/"$i".meth
-
-    # Compute methylation stats
-    levels -o "$DATAOUTPUT"/"$i".levels "$DATAOUTPUT"/"$i".meth
-
-    # Compute conversion rate
-    bsrate -c $GENOME_INDEX -o "$DATAOUTPUT"/"$i".bsrate "$DATAOUTPUT"/"$i".mr.dremove.sort
-
-    rm "$DATAOUTPUT"/"$i".mr.dremove.sort
-    echo
-
+    rm "$RESULT_FOLDER"/"$SAMPLE".mr.dremove
 done
