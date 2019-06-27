@@ -1,16 +1,14 @@
 #!/bin/bash
 
-#SBATCH -J "methpipe_x"
-#SBATCH -o 98_log_files/methpipe_x.out
-#SBATCH -c 2
-#SBATCH -p medium
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=yourAddress
-#SBATCH --time=3-00:00
-#SBATCH --mem=20G
-
-# Move to directory where job was submitted
-cd $SLURM_SUBMIT_DIR
+print_help () {
+    echo ""
+    echo "Usage:"
+    echo "    cat sample_names.txt | parallel -j 20 srun -c 1 --mem 20G -p medium --time 7-00:00 -J methpipe -o 98_log_files/methpipe_%j.log ./00_scripts/06_methpipe.sh {}"
+    echo ""
+    echo "Where:"
+    echo "    SAMPLE_NAME is the part before _R1, _R2 or _trimmed_..."
+    echo ""
+}
 
 # Load needed software
 module load methpipe/3.4.3
@@ -24,48 +22,31 @@ NAME=$(basename $0)
 LOG_FOLDER="98_log_files"
 cp $SCRIPT $LOG_FOLDER/"$TIMESTAMP"_"$NAME"
 
-
-
-
 # Global variables
-GENOME="04_reference/genome_filtered.fna"
-DATA_FOLDER="05_results"
-DATAINPUT="03_trimmed"
-SAMPLE="01_info_file/sample_name_x"
+GENOME_INDEX="04_reference/index_genome.dbindex"
+TRIMMED_FOLDER="03_trimmed"
+RESULT_FOLDER="05_results"
+SAMPLE="$1"
 
-# Running the program
-cat "$SAMPLE" | while read i  
-do
+if [ -z "$SAMPLE" ]
+then
+    print_help
+    exit
+fi 
 
-    LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 \
-        -o "$DATA_FOLDER"/"$i".mr.sorted_start "$DATA_FOLDER"/"$i".mr
+# Compute methylation level
+methcounts -cpg-only -c $GENOME_INDEX -o "$RESULT_FOLDER"/"$SAMPLE".meth \
+    "$RESULT_FOLDER"/"$SAMPLE".mr.dremove.sort
 
-    # Compress .mr file
-    gzip "$DATA_FOLDER"/"$i".mr
+# Compute symmetric CpGs contexts
+symmetric-cpgs -o "$RESULT_FOLDER"/"$SAMPLE"_CpG.meth \
+    "$RESULT_FOLDER"/"$SAMPLE".meth
 
-    # Remove putative PCR duplicates
-    duplicate-remover -S "$DATA_FOLDER"/"$i".dremove_stat.txt \
-        -o "$DATA_FOLDER"/"$i".mr.dremove "$DATA_FOLDER"/"$i".mr.sorted_start
+# Compute methylation stats
+levels -o "$RESULT_FOLDER"/"$SAMPLE".levels "$RESULT_FOLDER"/"$SAMPLE".meth
 
-    rm "$DATA_FOLDER"/"$i".mr.sorted_start
+# Compute conversion rate
+bsrate -c $GENOME_INDEX -o "$RESULT_FOLDER"/"$SAMPLE".bsrate \
+    "$RESULT_FOLDER"/"$SAMPLE".mr.dremove.sort
 
-    LC_ALL=C sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 \
-        -o "$DATA_FOLDER"/"$i".mr.dremove.sort "$DATA_FOLDER"/"$i".mr.dremove
-
-    rm "$DATA_FOLDER"/"$i".mr.dremove
-
-    # Compute methylation level
-    methcounts -cpg-only -c $GENOME -o "$DATA_FOLDER"/"$i".meth "$DATA_FOLDER"/"$i".mr.dremove.sort
-
-    # Compute symmetric CpGs contexts
-    symmetric-cpgs -o "$DATA_FOLDER"/"$i"_CpG.meth "$DATA_FOLDER"/"$i".meth
-
-    # Compute methylation stats
-    levels -o "$DATA_FOLDER"/"$i".levels "$DATA_FOLDER"/"$i".meth
-
-    # Compute conversion rate
-    bsrate -c $GENOME -o "$DATA_FOLDER"/"$i".bsrate "$DATA_FOLDER"/"$i".mr.dremove.sort
-
-    rm "$DATA_FOLDER"/"$i".mr.dremove.sort
-
-done
+rm "$RESULT_FOLDER"/"$SAMPLE".mr.dremove.sort
